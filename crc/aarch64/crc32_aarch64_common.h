@@ -156,7 +156,7 @@
 	ldp	dconst0,dconst1,[const_adr]
 2:
 	ldr		crc0_data0,[ptr_crc0],8
-	prfm		pldl2keep,[ptr_crc0,3*1024-8]
+	prfm		pldl1keep,[ptr_crc0, #192]
 	mov		crc1,0
 	mov		crc2,0
 	add		ptr_crc1,ptr_crc0,336
@@ -164,53 +164,29 @@
 	crc32_u64	crc0,crc0,crc0_data0
 	.set		offset,0
 	.set		ptr_offset,8
-	.rept		5
+	.rept		21
 	ldp		crc0_data0,crc0_data1,[ptr_crc0],16
 	ldp		crc1_data0,crc1_data1,[ptr_crc1],16
+	ldp             crc2_data0,crc2_data1,[ptr_crc2],16
 	.set		offset,offset+64
 	.set		ptr_offset,ptr_offset+16
-	prfm		pldl2keep,[ptr_crc0,3*1024-ptr_offset+offset]
-	crc32_u64	crc0,crc0,crc0_data0
-	crc32_u64	crc0,crc0,crc0_data1
-	ldp		crc2_data0,crc2_data1,[ptr_crc2],16
-	crc32_u64	crc1,crc1,crc1_data0
-	crc32_u64	crc1,crc1,crc1_data1
-	crc32_u64	crc2,crc2,crc2_data0
-	crc32_u64	crc2,crc2,crc2_data1
-	.endr
-	.set		l1_offset,0
-	.rept		10
-	ldp		crc0_data0,crc0_data1,[ptr_crc0],16
-	ldp		crc1_data0,crc1_data1,[ptr_crc1],16
-	.set		offset,offset+64
-	.set		ptr_offset,ptr_offset+16
-	prfm		pldl2keep,[ptr_crc0,3*1024-ptr_offset+offset]
-	prfm		pldl1keep,[ptr_crc0,2*1024-ptr_offset+l1_offset]
-	.set		l1_offset,l1_offset+64
-	crc32_u64	crc0,crc0,crc0_data0
-	crc32_u64	crc0,crc0,crc0_data1
-	ldp		crc2_data0,crc2_data1,[ptr_crc2],16
-	crc32_u64	crc1,crc1,crc1_data0
-	crc32_u64	crc1,crc1,crc1_data1
-	crc32_u64	crc2,crc2,crc2_data0
-	crc32_u64	crc2,crc2,crc2_data1
-	.endr
+	prfm		pldl1keep,[ptr_crc0,512-ptr_offset+offset]
+	prfm            pldl2keep,[ptr_crc0,3*512-ptr_offset+offset]
+	prfm            pldl1keep,[ptr_crc1,512-ptr_offset+offset]
+        prfm            pldl2keep,[ptr_crc1,3*512-ptr_offset+offset]
+        prfm            pldl1keep,[ptr_crc2,512-ptr_offset+offset]
+        prfm            pldl2keep,[ptr_crc2,3*512-ptr_offset+offset]
 
-	.rept		6
-	ldp		crc0_data0,crc0_data1,[ptr_crc0],16
-	ldp		crc1_data0,crc1_data1,[ptr_crc1],16
-	.set		ptr_offset,ptr_offset+16
-	prfm		pldl1keep,[ptr_crc0,2*1024-ptr_offset+l1_offset]
-	.set		l1_offset,l1_offset+64
 	crc32_u64	crc0,crc0,crc0_data0
 	crc32_u64	crc0,crc0,crc0_data1
-	ldp		crc2_data0,crc2_data1,[ptr_crc2],16
 	crc32_u64	crc1,crc1,crc1_data0
 	crc32_u64	crc1,crc1,crc1_data1
 	crc32_u64	crc2,crc2,crc2_data0
 	crc32_u64	crc2,crc2,crc2_data1
 	.endr
+	
 	ldr		crc2_data0,[ptr_crc2]
+	prfm            pldl1keep,[ptr_crc2, #192]
 	fmov		dtmp0,xcrc0
 	fmov		dtmp1,xcrc1
 	crc32_u64	crc2,crc2,crc2_data0

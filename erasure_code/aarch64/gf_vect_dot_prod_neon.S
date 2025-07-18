@@ -170,7 +170,9 @@ cdecl(gf_vect_dot_prod_neon):
 	ldp	q_data_6, q_data_7, [x_ptr]
 
 	prfm	pldl1keep, [x_tbl1]
-	prfm	pldl1strm, [x_ptr]
+	prfm    pldl1strm, [x_ptr, #192]
+	prfm	pldl1strm, [x_ptr, #256]
+	prfm    pldl1strm, [x_ptr, #320]
 
 	and	v_data_0_lo.16b, v_data_0.16b, v_mask0f.16b
 	and	v_data_1_lo.16b, v_data_1.16b, v_mask0f.16b

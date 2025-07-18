@@ -205,7 +205,9 @@ cdecl(gf_4vect_dot_prod_neon):
 	ldr	q_data_2, [x_ptr], #16
 	ldr	q_data_3, [x_ptr], #16
 
-	prfm	pldl1strm, [x_ptr]
+	prfm	pldl1strm, [x_ptr, #64]
+	prfm    pldl1strm, [x_ptr, #128]
+	prfm    pldl1strm, [x_ptr, #192]
 	prfm	pldl1keep, [x_tbl1]
 	prfm	pldl1keep, [x_tbl2]
 	prfm	pldl1keep, [x_tbl3]
