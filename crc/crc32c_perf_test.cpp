@@ -1,3 +1,7 @@
+/**
+ 1) The build command: g++ crc32c_perf_test.cpp -O3 -lisal -o crc32c_perf_test  
+ 2) The test command: ./crc32c_perf_test -c 10000 -m 1G -b 4k
+*/
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
