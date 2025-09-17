@@ -30,7 +30,7 @@
 lsrc_aarch64 += \
 	crc/aarch64/crc_multibinary_arm.S	\
 	crc/aarch64/crc_aarch64_dispatcher.c \
-	crc/aarch64/crc32_iscsi_3crc_sve2.c
+	crc/aarch64/crc32_iscsi_sve2.c
 
 lsrc_aarch64 += \
 	crc/aarch64/crc16_t10dif_pmull.S \
