@@ -267,7 +267,7 @@ uint32_t crc32_iscsi_sve2(const unsigned char *buf, int len, uint32_t crc)
     //128b fold to 64b
     uint64x2_t high_tmp = crc32_final_fold(&v1);
     //barrent_reduction
-    crc_result = barrett_reduction(v1. high_tmp);
+    crc_result = barrett_reduction(v1, high_tmp);
 
     if (len > 0) {
         crc_result = crc32_iscsi_crc_ext(buf, len, crc_result);
