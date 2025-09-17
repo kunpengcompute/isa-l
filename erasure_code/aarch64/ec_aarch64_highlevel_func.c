@@ -144,10 +144,19 @@ extern void
 gf_vect_dot_prod_sve(int len, int vlen, unsigned char *gftbls, unsigned char **src,
                      unsigned char *dest);
 extern void
+gf_vect_dot_prod_eor_sve(int len, int vlen, unsigned char *gftbls, unsigned char **src,
+                     unsigned char *dest);                    
+extern void
 gf_2vect_dot_prod_sve(int len, int vlen, unsigned char *gftbls, unsigned char **src,
                       unsigned char **dest);
 extern void
+gf_2vect_dot_prod_eor_sve(int len, int vlen, unsigned char *gftbls, unsigned char **src,
+                      unsigned char **dest);
+extern void
 gf_3vect_dot_prod_sve(int len, int vlen, unsigned char *gftbls, unsigned char **src,
+                      unsigned char **dest);
+extern void
+gf_3vect_dot_prod_eor_sve(int len, int vlen, unsigned char *gftbls, unsigned char **src,
                       unsigned char **dest);
 extern void
 gf_4vect_dot_prod_sve(int len, int vlen, unsigned char *gftbls, unsigned char **src,
@@ -183,6 +192,15 @@ extern void
 gf_6vect_mad_sve(int len, int vec, int vec_i, unsigned char *gftbls, unsigned char *src,
                  unsigned char **dest);
 
+int is_all_one(unsigned char *g_tbls, int k) {
+        for (int i = 0; i < k; i++) {
+            if (g_tbls[i * 32 + 1] != 0x1) {
+                return 0;
+            }
+        }
+        return 1;
+}
+
 void
 ec_encode_data_sve(int len, int k, int rows, unsigned char *g_tbls, unsigned char **data,
                    unsigned char **coding)
@@ -190,6 +208,17 @@ ec_encode_data_sve(int len, int k, int rows, unsigned char *g_tbls, unsigned cha
         if (len < 16) {
                 ec_encode_data_base(len, k, rows, g_tbls, data, coding);
                 return;
+        }
+
+        if (rows == 1 && is_all_one(g_tbls, k)) {
+            gf_vect_dot_prod_eor_sve(len, k, g_tbls, data, *coding);
+            return;
+        } else if (rows == 2 && is_all_one(g_tbls, k)) {
+            gf_2vect_dot_prod_eor_sve(len, k, g_tbls, data, coding);
+            return;
+        } else if (rows == 3 && is_all_one(g_tbls, k)) {
+            gf_3vect_dot_prod_eor_sve(len, k, g_tbls, data, coding);
+            return;
         }
 
         while (rows > 11) {
