@@ -95,7 +95,7 @@ cdecl(gf_vect_dot_prod_eor_sve):
 	add	x_vec_i, x_vec_i, #8		/* move x_vec_i to next */
 
 	eor z_dest.d, z_dest.d, z_src.d
-    eor z_dest2.d, z_dest2.d. z_src2.d
+    eor z_dest2.d, z_dest2.d, z_src2.d
 
 	cmp	x_vec_i, x_vec
 	blt	.Lloopsve_vl_vects

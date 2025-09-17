@@ -179,7 +179,7 @@ cdecl(gf_3vect_dot_prod_eor_sve):
 .Lloopsve_vl_vects:
 	/* load src data, governed by p0 */
 	ld1b	z_src.b,  p0/z, [x_ptr, x_pos]	/* load from: src base + pos offset */
-	ld1b    z_src2.b  p1/z, [x_ptr, x_pos2]
+	ld1b    z_src2.b,  p1/z, [x_ptr, x_pos2]
 	/* split 4-bit lo; 4-bit hi */
 	and	z_src_lo.d, z_src.d, z_mask0f.d
 	lsr	z_src_hi.b, z_src.b, #4

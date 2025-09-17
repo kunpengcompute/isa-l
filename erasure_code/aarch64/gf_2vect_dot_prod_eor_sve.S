@@ -61,7 +61,7 @@ x_dest1		.req	x10
 x_dest2		.req	x_dest	/* reused */
 
 x_pos2      .req    x11
-x_temp      .rep    x12
+x_temp      .req    x12
 
 /* r16,r17,r18,r29,r30: special role registers, avoided */
 /* r19..r29 and SP must be preserved */
