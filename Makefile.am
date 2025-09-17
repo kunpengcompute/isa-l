@@ -136,7 +136,7 @@ CCAS = $(as_filter)
 EXTRA_DIST += tools/yasm-filter.sh tools/nasm-filter.sh
 EXTRA_DIST += tools/yasm-cet-filter.sh tools/nasm-cet-filter.sh
 
-AM_CFLAGS = ${my_CFLAGS} ${INCLUDE} $(src_include) ${ARCH} ${D}
+AM_CFLAGS = ${my_CFLAGS} ${INCLUDE} $(src_include) ${ARCH} ${D} -O3 -march=armv8.5-a+crc+sve2+sve2-aes+crypto -flax-vector-conversions
 if CPU_AARCH64
 AM_CCASFLAGS = ${AM_CFLAGS}
 else
