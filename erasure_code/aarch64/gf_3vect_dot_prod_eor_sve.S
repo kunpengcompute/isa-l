@@ -59,11 +59,11 @@
 		ldp     d8,  d9,  [sp], stack_size
 .endm
 
-.global cdecl(gf_3vect_dot_prod_sve)
+.global cdecl(gf_3vect_dot_prod_eor_sve)
 #ifndef __APPLE__
-.type gf_3vect_dot_prod_sve, %function
+.type gf_3vect_dot_prod_eor_sve, %function
 #endif
-/* void gf_3vect_dot_prod_sve(int len, int vlen, unsigned char *gftbls,
+/* void gf_3vect_dot_prod_eor_sve(int len, int vlen, unsigned char *gftbls,
 				   unsigned char **src, unsigned char **dest);
  */
 
@@ -98,11 +98,11 @@ z_mask0f	.req	z0
 
 z_src		.req	z1
 z_src_lo	.req	z2
-z_src_hi	.req	z_src
+z_src_hi	.req	z15
 
 z_src2      .req    z6
 z_src2_lo   .req    z7
-z_src2_hi   .req    z_src2
+z_src2_hi   .req    z16
 
 z_dest1		.req	z3
 z_dest1_2   .req    z8
@@ -138,7 +138,7 @@ z_dest2_2   .req    z29
 z_dest3		.req	z28
 z_dest3_2   .req    z30
 
-cdecl(gf_3vect_dot_prod_sve):
+cdecl(gf_3vect_dot_prod_eor_sve):
     push_stack
 	/* less than 16 bytes, return_fail */
 	cmp	x_len, #16
@@ -189,31 +189,23 @@ cdecl(gf_3vect_dot_prod_sve):
 
 	/* gf_tbl addr: (x_tbl + dest_idx * x_vec * 32) + src_vec_idx * 32 */
 	/* load gf_table's */
-	ldp	q_gft1_lo, q_gft1_hi, [x_tbl1], #32	/* x_tbl1 is post-added by #32 for each src vect */
 	ldp	q_gft2_lo, q_gft2_hi, [x_tbl2], #32
+    ldp	q_gft3_lo, q_gft3_hi, [x_tbl3], #32
 
 	/* prefetch */
-	prfb	pldl1keep, p0, [x_tbl1]
 	prfb	pldl1keep, p0, [x_tbl2]
+    prfb	pldl2keep, p0, [x_tbl3]
 
 	/* calc for next */
 	add	x_vec_i, x_vec_i, #8		/* move x_vec_i to next */
 	ldr	x_ptr, [x_src, x_vec_i]		/* x_ptr: src base addr. */
 
 	/* dest 1 */
-	/* table indexing, ie. gf(2^8) multiplication */
-	tbl	z_gft1_lo_r.b, {z_gft1_lo.b}, z_src_lo.b
-	tbl	z_gft1_hi_r.b, {z_gft1_hi.b}, z_src_hi.b
-	eor3 z_dest1.d, z_dest1.d, z_gft1_hi_r.d, z_gft1_lo_r.d
-
-	tbl	z_gft1_lo_r.b, {z_gft1_lo.b}, z_src2_lo.b
-	tbl	z_gft1_hi_r.b, {z_gft1_hi.b}, z_src2_hi.b
-	eor3 z_dest1_2.d, z_dest1_2.d, z_gft1_hi_r.d, z_gft1_lo_r.d
-
-	ldp	q_gft3_lo, q_gft3_hi, [x_tbl3], #32
-	prfb	pldl2keep, p0, [x_tbl3]
+	eor z_dest1.d, z_dest1.d, z_src.d
+    eor z_dest1_2.d, z_dest1_2.d, z_src2.d
 
 	/* dest 2 */
+    /* table indexing, ie. gf(2^8) multiplication */
 	tbl	z_gft2_lo_r.b, {z_gft2_lo.b}, z_src_lo.b
 	tbl	z_gft2_hi_r.b, {z_gft2_hi.b}, z_src_hi.b
 	eor3 z_dest2.d, z_dest2.d, z_gft2_hi_r.d, z_gft2_lo_r.d

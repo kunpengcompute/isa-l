@@ -49,8 +49,11 @@ lsrc_aarch64 += \
 		erasure_code/aarch64/gf_5vect_mad_sve.S \
 		erasure_code/aarch64/gf_6vect_mad_sve.S \
 		erasure_code/aarch64/gf_vect_dot_prod_sve.S \
+		erasure_code/aarch64/gf_vect_dot_prod_eor_sve.S \
 		erasure_code/aarch64/gf_2vect_dot_prod_sve.S \
+		erasure_code/aarch64/gf_2vect_dot_prod_eor_sve.S \
 		erasure_code/aarch64/gf_3vect_dot_prod_sve.S \
+		erasure_code/aarch64/gf_3vect_dot_prod_eor_sve.S \
 		erasure_code/aarch64/gf_4vect_dot_prod_sve.S \
 		erasure_code/aarch64/gf_5vect_dot_prod_sve.S \
 		erasure_code/aarch64/gf_6vect_dot_prod_sve.S \
