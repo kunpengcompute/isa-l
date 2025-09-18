@@ -29,8 +29,7 @@
 
 lsrc_aarch64 += \
 	crc/aarch64/crc_multibinary_arm.S	\
-	crc/aarch64/crc_aarch64_dispatcher.c \
-	crc/aarch64/crc32_iscsi_sve2.c
+	crc/aarch64/crc_aarch64_dispatcher.c 
 
 lsrc_aarch64 += \
 	crc/aarch64/crc16_t10dif_pmull.S \
@@ -50,6 +49,7 @@ lsrc_aarch64 += \
 	crc/aarch64/crc32_iscsi_refl_pmull.S \
 	crc/aarch64/crc32_gzip_refl_pmull.S \
 	crc/aarch64/crc32_iscsi_3crc_fold.S \
+	crc/aarch64/crc32_iscsi_sve2.S \
 	crc/aarch64/crc32_gzip_refl_3crc_fold.S \
 	crc/aarch64/crc32_iscsi_crc_ext.S \
 	crc/aarch64/crc32_gzip_refl_crc_ext.S \
