@@ -28,15 +28,15 @@
 **********************************************************************/
 .text
 .align		6
-.arch		armv8-a+sve
+.arch		armv8-a+sve2
 
 #include "../include/aarch64_label.h"
 
-.global cdecl(gf_vect_dot_prod_sve)
+.global cdecl(gf_vect_dot_prod_sve2)
 #ifndef __APPLE__
-.type gf_vect_dot_prod_sve, %function
+.type gf_vect_dot_prod_sve2, %function
 #endif
-/* void gf_vect_dot_prod_sve(int len, int vlen, unsigned char *gftbls,
+/* void gf_vect_dot_prod_sve2(int len, int vlen, unsigned char *gftbls,
 				unsigned char **src, unsigned char *dest);
  */
 
@@ -70,7 +70,7 @@ z_gft1_hi	.req	z5
 q_gft1_lo	.req	q4
 q_gft1_hi	.req	q5
 
-cdecl(gf_vect_dot_prod_sve):
+cdecl(gf_vect_dot_prod_sve2):
 	/* less than 16 bytes, return_fail */
 	cmp	x_len, #16
 	blt	.return_fail
@@ -109,8 +109,8 @@ cdecl(gf_vect_dot_prod_sve):
 	tbl	z_gft1_hi.b, {z_gft1_hi.b}, z_src_hi.b
 
 	/* exclusive or, ie. gf(2^8) add */
-	eor	z_dest.d, z_gft1_lo.d, z_dest.d
-	eor	z_dest.d, z_gft1_hi.d, z_dest.d
+	// eor	z_dest.d, z_gft1_lo.d, z_dest.d
+	eor3	z_dest.d, z_dest.d, z_gft1_hi.d, z_gft1_lo.d
 
 	cmp	x_vec_i, x_vec
 	blt	.Lloopsve_vl_vects

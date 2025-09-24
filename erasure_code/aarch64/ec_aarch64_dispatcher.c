@@ -66,9 +66,14 @@ DEFINE_INTERFACE_DISPATCHER(ec_encode_data)
 {
 #if defined(__linux__)
         unsigned long auxval = getauxval(AT_HWCAP);
+        unsigned long auxval2 = getauxval(AT_HWCAP2);
 
-        if (auxval & HWCAP_SVE)
+        if (auxval & HWCAP_SVE){
+                if (auxval2 & HWCAP2_SVE2) {
+                    return PROVIDER_INFO(ec_encode_data_sve2);           
+                }
                 return PROVIDER_INFO(ec_encode_data_sve);
+        }
         if (auxval & HWCAP_ASIMD)
                 return PROVIDER_INFO(ec_encode_data_neon);
 #elif defined(__APPLE__)

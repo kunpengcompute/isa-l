@@ -28,15 +28,15 @@
 **********************************************************************/
 .text
 .align		6
-.arch		armv8-a+sve
+.arch		armv8-a+sve2
 
 #include "../include/aarch64_label.h"
 
-.global cdecl(gf_3vect_dot_prod_sve)
+.global cdecl(gf_2vect_dot_prod_sve2)
 #ifndef __APPLE__
-.type gf_3vect_dot_prod_sve, %function
+.type gf_2vect_dot_prod_sve2, %function
 #endif
-/* void gf_3vect_dot_prod_sve(int len, int vlen, unsigned char *gftbls,
+/* void gf_2vect_dot_prod_sve2(int len, int vlen, unsigned char *gftbls,
 				   unsigned char **src, unsigned char **dest);
  */
 
@@ -57,10 +57,11 @@ x_pos		.req	x7
 
 x_tbl1		.req	x8
 x_tbl2		.req	x9
-x_tbl3		.req	x10
-x_dest1		.req	x11
-x_dest2		.req	x12
-x_dest3		.req	x_dest	/* reused */
+x_dest1		.req	x10
+x_dest2		.req	x_dest	/* reused */
+
+x_pos2      .req    x11
+x_temp      .req    x12
 
 /* r16,r17,r18,r29,r30: special role registers, avoided */
 /* r19..r29 and SP must be preserved */
@@ -73,11 +74,22 @@ z_src_lo	.req	z2
 z_src_hi	.req	z_src
 
 z_dest1		.req	z3
+z_dest1_2   .req    z8
+
+z_src2      .req    z9
+z_src2_lo   .req    z10
+z_src2_hi   .req    z_src2
 
 z_gft1_lo	.req	z4
 z_gft1_hi	.req	z5
 q_gft1_lo	.req	q4
 q_gft1_hi	.req	q5
+
+z_gft1_lo_r .req    z6
+z_gft1_hi_r .req    z7
+
+z_gft1_lo_r_2  .req  z11
+z_gft1_hi_r_2  .req  z12
 
 /* bottom 64-bit of v8..v15 must be preserved if used */
 z_gft2_lo	.req	z17
@@ -85,49 +97,67 @@ z_gft2_hi	.req	z18
 q_gft2_lo	.req	q17
 q_gft2_hi	.req	q18
 
-z_gft3_lo	.req	z19
-z_gft3_hi	.req	z20
-q_gft3_lo	.req	q19
-q_gft3_hi	.req	q20
+z_gft2_lo_r .req    z19
+z_gft2_hi_r .req    z20
+
+z_gft2_lo_r_2  .req  z19
+z_gft2_hi_r_2  .req  z20
 
 z_dest2		.req	z27
-z_dest3		.req	z28
+z_dest2_2   .req    z28
 
-cdecl(gf_3vect_dot_prod_sve):
+cdecl(gf_2vect_dot_prod_sve2):
 	/* less than 16 bytes, return_fail */
 	cmp	x_len, #16
 	blt	.return_fail
 
 	mov	z_mask0f.b, #0x0f		/* z_mask0f = 0x0F0F...0F */
 	mov	x_pos, #0
+    mov x_pos2, #32
+
 	lsl	x_vec, x_vec, #3
 	ldp	x_dest1, x_dest2, [x_dest, #8*0]
-	ldr	x_dest3, [x_dest, #8*2]
 
 /* Loop 1: x_len, vector length */
 .Lloopsve_vl:
 	whilelo	p0.b, x_pos, x_len
 	b.none	.return_pass
+	whilelo	p1.b, x_pos2, x_len
 
 	mov	x_vec_i, #0			/* clear x_vec_i */
 	ldr	x_ptr, [x_src, x_vec_i]		/* x_ptr: src base addr. */
 
 	mov	z_dest1.b, #0			/* clear z_dest1 */
+	mov z_dest1_2.b, #0
+
 	mov	z_dest2.b, #0			/* clear z_dest2 */
-	mov	z_dest3.b, #0			/* clear z_dest3 */
+	mov z_dest2_2.b, #0
 
 	/* gf_tbl base = (x_tbl + dest_idx * x_vec * 32) */
 	mov	x_tbl1, x_tbl			/* reset x_tbl1 */
 	add	x_tbl2, x_tbl1, x_vec, LSL #2	/* reset x_tbl2 */
-	add	x_tbl3, x_tbl2, x_vec, LSL #2	/* reset x_tbl3 */
 
 /* Loop 2: x_vec, number of source vectors (ie. data blocks) */
 .Lloopsve_vl_vects:
 	/* load src data, governed by p0 */
 	ld1b	z_src.b,  p0/z, [x_ptr, x_pos]	/* load from: src base + pos offset */
+	ld1b    z_src2.b, p1/z, [x_ptr, x_pos2]
+
+    add x_temp, x_ptr, x_pos
+	prfm   pldl1strm, [x_temp, #128]
+
+	add x_vec_i, x_vec_i, #8
+	ldr x_ptr, [x_src, x_vec_i]
+
+	add x_temp, x_ptr, x_pos
+	prfm   pldl1strm, [x_temp]
+
 	/* split 4-bit lo; 4-bit hi */
 	and	z_src_lo.d, z_src.d, z_mask0f.d
 	lsr	z_src_hi.b, z_src.b, #4
+
+	and z_src2_lo.d, z_src2.d, z_mask0f.d
+	lsr z_src2_hi.b, z_src2.b, #4
 
 
 	/* gf_tbl addr: (x_tbl + dest_idx * x_vec * 32) + src_vec_idx * 32 */
@@ -136,35 +166,28 @@ cdecl(gf_3vect_dot_prod_sve):
 	ldp	q_gft2_lo, q_gft2_hi, [x_tbl2], #32
 
 	/* prefetch */
-	prfb	pldl2keep, p0, [x_tbl1]
-	prfb	pldl2keep, p0, [x_tbl2]
+	prfm	pldl1keep, [x_tbl1, #64]
+	prfm	pldl1keep, [x_tbl2, #64]
 
-	/* calc for next */
-	add	x_vec_i, x_vec_i, #8		/* move x_vec_i to next */
-	ldr	x_ptr, [x_src, x_vec_i]		/* x_ptr: src base addr. */
 
 	/* dest 1 */
 	/* table indexing, ie. gf(2^8) multiplication */
-	tbl	z_gft1_lo.b, {z_gft1_lo.b}, z_src_lo.b
-	tbl	z_gft1_hi.b, {z_gft1_hi.b}, z_src_hi.b
-	/* exclusive or, ie. gf(2^8) add */
-	eor	z_dest1.d, z_gft1_lo.d, z_dest1.d
-	eor	z_dest1.d, z_dest1.d, z_gft1_hi.d
+	tbl	z_gft1_lo_r.b, {z_gft1_lo.b}, z_src_lo.b
+	tbl	z_gft1_hi_r.b, {z_gft1_hi.b}, z_src_hi.b
+	eor3 z_dest1.d, z_dest1.d, z_gft1_hi_r.d, z_gft1_lo_r.d
 
-	ldp	q_gft3_lo, q_gft3_hi, [x_tbl3], #32
-	prfb	pldl2keep, p0, [x_tbl3]
+	tbl	z_gft1_lo_r.b, {z_gft1_lo.b}, z_src2_lo.b
+	tbl	z_gft1_hi_r.b, {z_gft1_hi.b}, z_src2_hi.b
+	eor3 z_dest1_2.d, z_dest1_2.d, z_gft1_hi_r.d, z_gft1_lo_r.d
 
 	/* dest 2 */
-	tbl	z_gft2_lo.b, {z_gft2_lo.b}, z_src_lo.b
-	tbl	z_gft2_hi.b, {z_gft2_hi.b}, z_src_hi.b
-	eor	z_dest2.d, z_gft2_lo.d, z_dest2.d
-	eor	z_dest2.d, z_dest2.d, z_gft2_hi.d
+	tbl	z_gft2_lo_r.b, {z_gft2_lo.b}, z_src_lo.b
+	tbl	z_gft2_hi_r.b, {z_gft2_hi.b}, z_src_hi.b
+	eor3 z_dest2.d, z_dest2.d, z_gft2_hi_r.d, z_gft2_lo_r.d
 
-	/* dest 3 */
-	tbl	z_gft3_lo.b, {z_gft3_lo.b}, z_src_lo.b
-	tbl	z_gft3_hi.b, {z_gft3_hi.b}, z_src_hi.b
-	eor	z_dest3.d, z_gft3_lo.d, z_dest3.d
-	eor	z_dest3.d, z_dest3.d, z_gft3_hi.d
+    tbl	z_gft2_lo_r.b, {z_gft2_lo.b}, z_src2_lo.b
+	tbl	z_gft2_hi_r.b, {z_gft2_hi.b}, z_src2_hi.b
+	eor3 z_dest2_2.d, z_dest2_2.d, z_gft2_hi_r.d, z_gft2_lo_r.d
 
 	cmp	x_vec_i, x_vec
 	blt	.Lloopsve_vl_vects
@@ -172,11 +195,17 @@ cdecl(gf_3vect_dot_prod_sve):
 
 	/* store dest data, governed by p0 */
 	st1b	z_dest1.b, p0, [x_dest1, x_pos]
-	st1b	z_dest2.b, p0, [x_dest2, x_pos]
-	st1b	z_dest3.b, p0, [x_dest3, x_pos]
+    st1b	z_dest1_2.b, p1, [x_dest1, x_pos2]
 
-	/* increment one vector length */
+	st1b	z_dest2.b, p0, [x_dest2, x_pos]
+	st1b	z_dest2_2.b, p1, [x_dest2, x_pos2]
+
+	/* increment two vector length */
 	incb	x_pos
+	incb    x_pos
+
+	incb    x_pos2
+	incb    x_pos2
 	b	.Lloopsve_vl
 /* end of Loop 1 */
 
