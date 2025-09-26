@@ -28,7 +28,7 @@
 **********************************************************************/
 #include <aarch64_multibinary.h>
 
-#ifdef CRC32C_DISPATCHER_TYPE
+#ifndef CRC32C_DISPATCHER_TYPE
 #define CRC32C_DISPATCHER_TYPE "cache_hit"
 #endif
 
@@ -83,7 +83,7 @@ DEFINE_INTERFACE_DISPATCHER(crc32_iscsi)
         } else {
             if (strcmp(dispatcher_type, "cache_hit") == 0){
                 return PROVIDER_INFO(crc32_iscsi_x6);
-            } else if (strcmp(dispatcher_type, "cache_miss") == 0) {
+            } else {
                 return PROVIDER_INFO(crc32_iscsi_3crc_fold);
             } 
         }
