@@ -28,6 +28,10 @@
 **********************************************************************/
 #include <aarch64_multibinary.h>
 
+#ifdef CRC32C_DISPATCHER_TYPE
+#define CRC32C_DISPATCHER_TYPE "cache_hit"
+#endif
+
 DEFINE_INTERFACE_DISPATCHER(crc16_t10dif)
 {
 #if defined(__linux__)
@@ -70,24 +74,20 @@ DEFINE_INTERFACE_DISPATCHER(crc32_ieee)
 
 DEFINE_INTERFACE_DISPATCHER(crc32_iscsi)
 {
-        return PROVIDER_INFO(crc32_iscsi_sve2);
 #if defined(__linux__)
-        unsigned long auxval = getauxval(AT_HWCAP);
-        if (auxval & HWCAP_CRC32) {
-                switch (get_micro_arch_id()) {
-                case MICRO_ARCH_ID(ARM, NEOVERSE_N1):
-                case MICRO_ARCH_ID(ARM, CORTEX_A57):
-                case MICRO_ARCH_ID(ARM, CORTEX_A72):
-                        return PROVIDER_INFO(crc32_iscsi_crc_ext);
-                }
-        }
-        if ((HWCAP_CRC32 | HWCAP_PMULL) == (auxval & (HWCAP_CRC32 | HWCAP_PMULL))) {
-                return PROVIDER_INFO(crc32_iscsi_3crc_fold);
-        }
+        const char* dispatcher_type = CRC32C_DISPATCHER_TYPE;
+        unsigned long auxval2 = getauxval(AT_HWCAP2);
 
-        if (auxval & HWCAP_PMULL) {
-                return PROVIDER_INFO(crc32_iscsi_refl_pmull);
+        if (auxval2 & HWCAP2_SVE2) {
+            return PROVIDER_INFO(crc32_iscsi_sve2);           
+        } else {
+            if (strcmp(dispatcher_type, "cache_hit") == 0){
+                return PROVIDER_INFO(crc32_iscsi_x6);
+            } else if (strcmp(dispatcher_type, "cache_miss") == 0) {
+                return PROVIDER_INFO(crc32_iscsi_3crc_fold);
+            } 
         }
+      
 #elif defined(__APPLE__)
         if (sysctlEnabled(SYSCTL_CRC32_KEY))
                 return PROVIDER_INFO(crc32_iscsi_3crc_fold);

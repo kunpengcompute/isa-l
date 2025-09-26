@@ -143,6 +143,8 @@ else
 AM_CCASFLAGS = ${yasm_args} ${INCLUDE} ${src_include} ${DEFS} ${D}
 endif
 
+AM_CFLAGS += -DCRC32C_DISPATCHER_CONFIG=$(CRC32C_DISPATCHER_TYPE)
+
 .asm.s:
 	@echo "  MKTMP   " $@;
 	@cp $< $@
