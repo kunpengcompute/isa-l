@@ -32,6 +32,33 @@
 
 #include "../include/aarch64_label.h"
 
+.set stack_size, 160
+.macro  push_stack
+        stp     d8,  d9,  [sp, -stack_size]!
+		stp     d10, d11, [sp, 16]
+		stp     d12, d13, [sp, 32]
+		stp     d14, d15, [sp, 48]
+		stp     x19, x20, [sp, 64]
+		stp     x21, x22, [sp, 80]
+		stp     x23, x24, [sp, 96]
+		stp     x25, x26, [sp, 112]
+		stp     x27, x28, [sp, 128]
+		stp     x29, x30, [sp, 144]
+.endm
+
+.macro  pop_stack
+		ldp     d10, d11, [sp, 16]
+		ldp     d12, d13, [sp, 32]
+		ldp     d14, d15, [sp, 48]
+		ldp     x19, x20, [sp, 64]
+		ldp     x21, x22, [sp, 80]
+		ldp     x23, x24, [sp, 96]
+		ldp     x25, x26, [sp, 112]
+		ldp     x27, x28, [sp, 128]
+		ldp     x29, x30, [sp, 144]
+		ldp     d8,  d9,  [sp], stack_size
+.endm
+
 .global cdecl(gf_2vect_dot_prod_eor_sve)
 #ifndef __APPLE__
 .type gf_2vect_dot_prod_eor_sve, %function
@@ -101,6 +128,7 @@ z_dest2		.req	z27
 z_dest2_2   .req    z28
 
 cdecl(gf_2vect_dot_prod_eor_sve):
+    push_stack
 	/* less than 16 bytes, return_fail */
 	cmp	x_len, #16
 	blt	.return_fail
@@ -194,9 +222,11 @@ cdecl(gf_2vect_dot_prod_eor_sve):
 /* end of Loop 1 */
 
 .return_pass:
+    pop_stack
 	mov	w_ret, #0
 	ret
 
 .return_fail:
+    pop_stack
 	mov	w_ret, #1
 	ret
