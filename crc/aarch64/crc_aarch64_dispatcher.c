@@ -70,6 +70,7 @@ DEFINE_INTERFACE_DISPATCHER(crc32_ieee)
 
 DEFINE_INTERFACE_DISPATCHER(crc32_iscsi)
 {
+         return PROVIDER_INFO(crc32_iscsi_x6);
 #if defined(__linux__)
         unsigned long auxval = getauxval(AT_HWCAP);
         if (auxval & HWCAP_CRC32) {
