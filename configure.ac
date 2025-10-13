@@ -67,7 +67,7 @@ AS_IF([test "x$enable_debug" = "xyes"], [
 
 AC_ARG_ENABLE([crc32c-dispatcher],
         [AS_HELP_STRING([--enable-crc32c-dispatcher=TYPE],
-          [Select CRC32C dispatcher type (cache_hit, cache_miss) [default=cache_hit]])],
+          [Select CRC32C dispatcher type (cache_hit, cache_miss) [default=cache_miss]])],
         [crc32c_dispatcher_type=$enableval],
         [crc32c_dispatcher_type=auto])
 AC_DEFINE_UNQUOTED([CRC32C_DISPATCHER_TYPE], ["$crc32c_dispatcher_type"], [CRC32C dispatcher type])

@@ -29,7 +29,7 @@
 #include <aarch64_multibinary.h>
 
 #ifndef CRC32C_DISPATCHER_TYPE
-#define CRC32C_DISPATCHER_TYPE "cache_hit"
+#define CRC32C_DISPATCHER_TYPE "cache_miss"
 #endif
 
 DEFINE_INTERFACE_DISPATCHER(crc16_t10dif)
@@ -81,10 +81,10 @@ DEFINE_INTERFACE_DISPATCHER(crc32_iscsi)
         if (auxval2 & HWCAP2_SVE2) {
             return PROVIDER_INFO(crc32_iscsi_sve2);           
         } else {
-            if (strcmp(dispatcher_type, "cache_hit") == 0){
-                return PROVIDER_INFO(crc32_iscsi_x6);
-            } else {
+            if (strcmp(dispatcher_type, "cache_miss") == 0){
                 return PROVIDER_INFO(crc32_iscsi_3crc_fold);
+            } else {
+                return PROVIDER_INFO(crc32_iscsi_x6);
             } 
         }
       
