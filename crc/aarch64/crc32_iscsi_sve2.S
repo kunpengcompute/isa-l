@@ -70,53 +70,40 @@ crc32_iscsi_sve2:
 	add	x0, x4, x0
 	.p2align 3,,7
 .L4:
+    prfm    PLDL1STRM, [x0, 784]
+	prfm    PLDL2STRM, [x0, 2176]
+	prfm    PLDL1STRM, [x4, 784]
+	prfm    PLDL2STRM, [x4, 2176]
+	prfm    PLDL1STRM, [x7, 784]
+	prfm    PLDL2STRM, [x7, 2176]
+	prfm    PLDL1STRM, [x8, 784]
+	prfm    PLDL2STRM, [x8, 2176]
 	ld1d	z5.d, p0/z, [x4]
-	prfm    PLDL1STRM, [x4, 768]
-	prfm    PLDL2STRM, [x4, 2048]
-	prfm    PLDL3STRM, [x4, 3072]
 	pmullt	z16.q, z1.d, z0.d
 	pmullb	z1.q, z1.d, z0.d
 	eor3	z1.d, z1.d, z16.d, z5.d
 	ld1d	z5.d, p0/z, [x10]
-	prfm    PLDL1STRM, [x10, 768]
-	prfm    PLDL2STRM, [x10, 2048]
-	prfm    PLDL3STRM, [x10, 3072]
 	pmullt	z6.q, z2.d, z0.d
 	pmullb	z2.q, z2.d, z0.d
 	eor3	z2.d, z2.d, z6.d, z5.d
 	ld1d	z5.d, p0/z, [x9]
-	prfm    PLDL1STRM, [x9, 768]
-	prfm    PLDL2STRM, [x9, 2048]
-	prfm    PLDL3STRM, [x9, 3072]
 	pmullt	z16.q, z4.d, z0.d
 	pmullb	z4.q, z4.d, z0.d
 	eor3	z4.d, z4.d, z16.d, z5.d
 	ld1d	z5.d, p0/z, [x8]
-	prfm    PLDL1STRM, [x8, 768]
-	prfm    PLDL2STRM, [x8, 2048]
-	prfm    PLDL3STRM, [x8, 3072]
 	pmullt	z6.q, z3.d, z0.d
 	pmullb	z3.q, z3.d, z0.d
 	eor3	z3.d, z3.d, z6.d, z5.d
 	ld1d	z5.d, p0/z, [x7]
-	prfm    PLDL1STRM, [x7, 768]
-	prfm    PLDL2STRM, [x7, 2048]
-	prfm    PLDL3STRM, [x7, 3072]
 	pmullt	z16.q, z19.d, z0.d
 	pmullb	z19.q, z19.d, z0.d
 	eor3	z19.d, z19.d, z16.d, z5.d
 	ld1d	z5.d, p0/z, [x6]
-	prfm    PLDL1STRM, [x6, 768]
-	prfm    PLDL2STRM, [x6, 2048]
-	prfm    PLDL3STRM, [x6, 3072]
 	pmullt	z6.q, z18.d, z0.d
 	decb	x1, all, mul #8
 	pmullb	z18.q, z18.d, z0.d
 	eor3	z18.d, z18.d, z6.d, z5.d
 	ld1d	z5.d, p0/z, [x2]
-	prfm    PLDL1STRM, [x2, 768]
-	prfm    PLDL2STRM, [x2, 2048]
-	prfm    PLDL3STRM, [x2, 3072]
 	pmullt	z16.q, z17.d, z0.d
 	pmullt	z6.q, z7.d, z0.d
 	pmullb	z17.q, z17.d, z0.d
@@ -124,9 +111,6 @@ crc32_iscsi_sve2:
 	eor3	z17.d, z17.d, z16.d, z5.d
 	add	x4, x4, x3
 	ld1d	z5.d, p0/z, [x0]
-	prfm    PLDL1STRM, [x0, 768]
-	prfm    PLDL2STRM, [x0, 2048]
-	prfm    PLDL3STRM, [x0, 3072]
 	add	x10, x10, x3
 	add	x9, x9, x3
 	add	x8, x8, x3

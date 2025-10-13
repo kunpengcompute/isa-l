@@ -28,7 +28,7 @@
 **********************************************************************/
 .text
 .align		6
-.arch		armv8-a+sve2
+.arch		armv8-a+sve
 
 #include "../include/aarch64_label.h"
 

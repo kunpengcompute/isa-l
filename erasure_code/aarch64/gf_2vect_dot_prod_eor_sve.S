@@ -28,7 +28,7 @@
 **********************************************************************/
 .text
 .align		6
-.arch		armv8-a+sve2
+.arch		armv8-a+sve
 
 #include "../include/aarch64_label.h"
 
@@ -195,11 +195,13 @@ cdecl(gf_2vect_dot_prod_eor_sve):
 	/* dest 2 */
 	tbl	z_gft2_lo_r.b, {z_gft2_lo.b}, z_src_lo.b
 	tbl	z_gft2_hi_r.b, {z_gft2_hi.b}, z_src_hi.b
-	eor3 z_dest2.d, z_dest2.d, z_gft2_hi_r.d, z_gft2_lo_r.d
+    eor	z_dest2.d, z_gft2_lo_r.d, z_dest2.d
+	eor	z_dest2.d, z_dest2.d, z_gft2_hi_r.d
 
     tbl	z_gft2_lo_r.b, {z_gft2_lo.b}, z_src2_lo.b
 	tbl	z_gft2_hi_r.b, {z_gft2_hi.b}, z_src2_hi.b
-	eor3 z_dest2_2.d, z_dest2_2.d, z_gft2_hi_r.d, z_gft2_lo_r.d
+    eor	z_dest2_2.d, z_gft2_lo_r.d, z_dest2_2.d
+	eor	z_dest2_2.d, z_dest2_2.d, z_gft2_hi_r.d
 
 	cmp	x_vec_i, x_vec
 	blt	.Lloopsve_vl_vects
