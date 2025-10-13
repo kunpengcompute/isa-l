@@ -69,7 +69,7 @@ AC_ARG_ENABLE([crc32c-dispatcher],
         [AS_HELP_STRING([--enable-crc32c-dispatcher=TYPE],
           [Select CRC32C dispatcher type (cache_hit, cache_miss) [default=cache_miss]])],
         [crc32c_dispatcher_type=$enableval],
-        [crc32c_dispatcher_type=auto])
+        [crc32c_dispatcher_type=cache_miss])
 AC_DEFINE_UNQUOTED([CRC32C_DISPATCHER_TYPE], ["$crc32c_dispatcher_type"], [CRC32C dispatcher type])
 
 # If this build is for x86, look for yasm and nasm
