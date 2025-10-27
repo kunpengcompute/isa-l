@@ -50,13 +50,41 @@ aarch64:
 other:
 * Compiler: Portable base functions are available that build with most C compilers.
 
-### Autotools
-To build and install the library with autotools it is usually sufficient to run:
+### Autotools Update
+
+1. In this branch, optimizations have been implemented for CRC32C and Erasure Code calculations on ARM architecture. The specific optimizations are as follows:
+
+* CRC32C:
+
+Added an implementation scheme using the SVPMULL instruction based on the CPU's supported instruction set.
+
+For user scenarios with different requirements, optimizations have been made based on the original implementation:
+
+For cache-unfriendly scenarios, more friendly prefetch optimizations were added.
+
+For cache-friendly scenarios, loop unrolling optimizations were performed.
+
+* Erasure Code:
+
+Computational optimizations were applied for the ratios of x+1, x+2, x+3.
+
+2. The compilation, installation, and enabling methods are largely consistent with the original process. Specific commands are as follows:
 
     ./autogen.sh
-    ./configure
+    ./configure --enable-crc32c-dispatcher=cache_hit
     make
     sudo make install
+
+Note regarding the ./configure configuration:
+
+* On machines supporting SVE2 instructions: 
+the CRC32C implementation using SVPMULL is enabled by default. The --enable-crc32c-dispatcher configuration option is not required.
+
+* On machines not supporting SVE2:
+
+Use --enable-crc32c-dispatcher=cache_hit for cache-hit-friendly CRC32C calculation.
+
+Use --enable-crc32c-dispatcher=cache_miss for cache-miss-friendly CRC32C calculation.
 
 ### Makefile
 To use a standard makefile run:
