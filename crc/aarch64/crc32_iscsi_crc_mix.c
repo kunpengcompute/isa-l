@@ -153,7 +153,7 @@ uint32_t crc32_iscsi_crc_mix(const unsigned char *buf, int len, unsigned int crc
         { static const uint64_t CRC_ALIGN(16) k_[] = {0x6992cea2, 0x0d3b6092}; k = vld1q_u64(k_);}
         buf2 += 128;
         /*Main loop. */
-        while (buf < limit) {
+        while (buf <= limit) {
             y0 = clmul_lo(x0, k), x0 = clmul_hi(x0, k);
             y1 = clmul_lo(x1, k), x1 = clmul_hi(x1, k);
             y2 = clmul_lo(x2, k), x2 = clmul_hi(x2, k);
@@ -246,7 +246,7 @@ uint32_t crc32_iscsi_crc_mix(const unsigned char *buf, int len, unsigned int crc
         return crc0;
     }
     if (len > 0) {
-        crc0 = crc32_iscsi_crc_ext((unsigned char *)buf, len, crc);
+        crc0 = crc32_iscsi_crc_ext((unsigned char *)buf, len, crc0);
     }
 
     return crc0;
