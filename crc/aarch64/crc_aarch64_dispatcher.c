@@ -79,7 +79,11 @@ DEFINE_INTERFACE_DISPATCHER(crc32_iscsi)
         unsigned long auxval2 = getauxval(AT_HWCAP2);
 
         if (auxval2 & HWCAP2_SVE2) {
-            return PROVIDER_INFO(crc32_iscsi_sve2);           
+            if (strcmp(dispatcher_type, "cache_miss") == 0){
+                return PROVIDER_INFO(crc32_iscsi_sve2);  
+            } else {
+                return PROVIDER_INFO(crc32_iscsi_crc_mix);
+            }               
         } else {
             if (strcmp(dispatcher_type, "cache_miss") == 0){
                 return PROVIDER_INFO(crc32_iscsi_3crc_fold);
