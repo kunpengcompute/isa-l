@@ -84,32 +84,39 @@ Use --enable-crc32c-dispatcher=cache_hit for cache-hit-friendly CRC32C calculati
 Use --enable-crc32c-dispatcher=cache_miss for cache-miss-friendly CRC32C calculation.
 
 Performance testing can be performed following these steps:
+
 CRC32C Test：
 Enter the crc directory
+
     ```bash
     cd crc
     ```
 
 Compile the test tool
+
     ```bash
     gcc -o crc32_iscsi_perf crc32_iscsi_perf.c -I ../include -lisal
     ```
 Run the test program
+
     ```bash
     ./crc32_iscsi_perf
     ```
 
 Erasure Code Test:
 Enter the erasure_code directory
+
     ```bash
     cd erasure_code
     ```
 
 Compile the test tool
+
     ```bash
     gcc -o erasure_code_perf erasure_code_perf.c -I ../include -lisal
     ```
 Run the test program
+
     ```bash
     ./erasure_code_perf -k 4 -p 2 -e 1
     ```
