@@ -52,39 +52,67 @@ other:
 
 ### Autotools Update
 
-1. In this branch, optimizations have been implemented for CRC32C and Erasure Code calculations on ARM architecture. The specific optimizations are as follows:
+In this branch, optimizations have been implemented for CRC32C and Erasure Code calculations on ARM architecture. The specific optimizations are as follows:
 
 * CRC32C:
 
-Added an implementation scheme using the SVPMULL instruction based on the CPU's supported instruction set.
+Based on the CPU's supported instruction set features and to more fully utilize all logical computing units, a new implementation scheme has been added that combines the SVPMULL instruction with scalar‑vector hybrid instructions.
 
-For user scenarios with different requirements, optimizations have been made based on the original implementation:
+Targeted optimizations have been performed on the original implementation for different user‑scenario requirements:
 
-For cache-unfriendly scenarios, more friendly prefetch optimizations were added.
+For cache‑unfriendly scenarios, the SVPMULL instruction is adopted along with more cache‑friendly prefetch optimizations.
 
-For cache-friendly scenarios, loop unrolling optimizations were performed.
+For cache‑friendly scenarios, loop‑unrolling optimizations and hybrid scalar‑vector parallel implementation optimizations have been applied.
 
 * Erasure Code:
 
 Computational optimizations were applied for the ratios of x+1, x+2, x+3.
 
-2. The compilation, installation, and enabling methods are largely consistent with the original process. Specific commands are as follows:
+The compilation, installation, and enabling methods are largely consistent with the original process. Specific commands are as follows:
 
+    ```bash
     ./autogen.sh
     ./configure --enable-crc32c-dispatcher=cache_hit
     make
     sudo make install
+    ```
 
 Note regarding the ./configure configuration:
-
-* On machines supporting SVE2 instructions: 
-the CRC32C implementation using SVPMULL is enabled by default. The --enable-crc32c-dispatcher configuration option is not required.
-
-* On machines not supporting SVE2:
 
 Use --enable-crc32c-dispatcher=cache_hit for cache-hit-friendly CRC32C calculation.
 
 Use --enable-crc32c-dispatcher=cache_miss for cache-miss-friendly CRC32C calculation.
+
+Performance testing can be performed following these steps:
+CRC32C Test：
+Enter the crc directory
+    ```bash
+    cd crc
+    ```
+
+Compile the test tool
+    ```bash
+    gcc -o crc32_iscsi_perf crc32_iscsi_perf.c -I ../include -lisal
+    ```
+Run the test program
+    ```bash
+    ./crc32_iscsi_perf
+    ```
+
+Erasure Code Test:
+Enter the erasure_code directory
+    ```bash
+    cd erasure_code
+    ```
+
+Compile the test tool
+    ```bash
+    gcc -o erasure_code_perf erasure_code_perf.c -I ../include -lisal
+    ```
+Run the test program
+    ```bash
+    ./erasure_code_perf -k 4 -p 2 -e 1
+    ```
 
 ### Makefile
 To use a standard makefile run:
