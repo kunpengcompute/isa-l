@@ -42,7 +42,8 @@ lsrc_aarch64 += \
 	crc/aarch64/crc64_jones_refl_pmull.S \
 	crc/aarch64/crc64_jones_norm_pmull.S \
 	crc/aarch64/crc64_rocksoft.c  \
-	crc/aarch64/crc32_iscsi_crc_mix.S
+	crc/aarch64/crc32_iscsi_p8c10.S \
+	crc/aarch64/crc32_iscsi_p8c10_clmul_const.S
 
 
 #CRC32/CRC32C for micro-architecture

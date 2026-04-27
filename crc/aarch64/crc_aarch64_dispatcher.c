@@ -82,7 +82,7 @@ DEFINE_INTERFACE_DISPATCHER(crc32_iscsi)
             if (strcmp(dispatcher_type, "cache_miss") == 0){
                 return PROVIDER_INFO(crc32_iscsi_sve2);  
             } else {
-                return PROVIDER_INFO(crc32_iscsi_crc_mix);
+                return PROVIDER_INFO(crc32_iscsi_fusion_p8_c10_asm);
             }               
         } else {
             if (strcmp(dispatcher_type, "cache_miss") == 0){
