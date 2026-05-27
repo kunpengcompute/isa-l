@@ -1,13 +1,21 @@
-# 编译安装 ISA-L
+# 安装指南
+## 环境要求
+
+在使用ISA-L EC特性之前，根据使用优化版本不同，对处理器和指令有不同的要求，详见下表。
+
+| 优化版本       | 依赖指令                    | 处理器        |
+| -------------- | --------------------------- | ------------- |
+| CRC32C六路并行 | CRC32                       | 鲲鹏920新型号处理器 |
+| 标向量混合     | CRC32、SVPMULL（SVE指令集） | 鲲鹏950处理器 |
 
 ## 下载源码
 
-直接拉取优化分支源码。
+- 直接拉取优化分支源码。
 
 ```bash
 git clone -b dev-isal-2.31-for-arm https://gitcode.com/boostkit/isa-l.git
 ```
-或者从github下载源码后合入优化补丁：
+- 或者从GitHub下载源码后合入优化补丁：
 
 ```bash
 git clone -b v2.31 https://github.com/boostkit/isa-l.git
