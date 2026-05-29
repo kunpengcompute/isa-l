@@ -38,3 +38,9 @@ make install
 - 使用 `--enable-crc32c-dispatcher=cache_hit` 可启用对缓存命中友好的 CRC32C 计算。
 - 使用 `--enable-crc32c-dispatcher=cache_miss` 可启用对缓存未全命中友好的 CRC32C 计算。
 - 默认为缓存未全命中友好的 CRC32C 计算。
+
+## 修订记录
+
+| 发布日期  | 修改说明       |
+|-------|----------|
+| 2026-06-30 | 第一次正式发布。|
