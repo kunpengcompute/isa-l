@@ -30,6 +30,8 @@
 #include "aarch64_multibinary.h"
 
 mbin_interface ec_encode_data
+mbin_interface ring_encode_data
+mbin_interface ring_decode_data
 mbin_interface gf_vect_mul
 mbin_interface gf_vect_dot_prod
 mbin_interface gf_vect_mad

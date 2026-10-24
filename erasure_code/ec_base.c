@@ -30,13 +30,90 @@
 #include <limits.h>
 #include <string.h> // for memset
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "erasure_code.h"
 #include "ec_base.h" // for GF tables
+#include "ring_internal.h"
+
+static int
+ring_try_init_tables(int k, int rows, const unsigned char *a, unsigned char *g_tbls)
+{
+        int config, recovery, index;
+        unsigned char errors[RING_MAX_PARITY] = { 0 };
+        unsigned char seen[RING_MAX_K] = { 0 };
+
+        if (rows <= 0)
+                return RING_NOT_HANDLED;
+
+        if (k != 4 && k != 8 && k != 10)
+                return RING_NOT_HANDLED;
+
+        if (!ring_read_row(a, k, &config, &recovery, &index))
+                return RING_NOT_HANDLED;
+
+        int parity = ring_config_parity(config, k);
+
+        if (recovery == 0) {
+                /* 当前方案要求一次生成全部校验块 */
+                if (rows != parity)
+                        return RING_INVALID;
+        } else {
+                if (rows > parity)
+                        return RING_INVALID;
+        }
+
+        for (int i = 0; i < rows; i++) {
+                int c, r, id;
+
+                if (!ring_read_row(a + (size_t) i * k, k, &c, &r, &id))
+                        return RING_INVALID;
+
+                if (c != config || r != recovery)
+                        return RING_INVALID;
+
+                if (recovery == 0) {
+                        /* 编码输入应为第 k ... k+parity-1 行 */
+                        if (id != k + i)
+                                return RING_INVALID;
+                } else {
+                        /* ring_read_row 已验证恢复编号小于 k */
+                        if (seen[id])
+                                return RING_INVALID;
+
+                        seen[id] = 1;
+                        errors[i] = (unsigned char) id;
+                }
+        }
+
+        memset(g_tbls, 0, RING_META_SIZE);
+
+        g_tbls[0] = 0x52;
+        g_tbls[1] = 0x54;
+        g_tbls[2] = 1;
+        g_tbls[3] = recovery ? RING_OP_DECODE : RING_OP_ENCODE;
+        g_tbls[4] = (unsigned char) k;
+        g_tbls[5] = (unsigned char) parity;
+        g_tbls[6] = recovery ? (unsigned char) rows : 0;
+
+        if (recovery)
+                memcpy(g_tbls + 8, errors, (size_t) rows);
+
+        return RING_HANDLED;
+}
 
 void
 ec_init_tables_base(int k, int rows, unsigned char *a, unsigned char *g_tbls)
 {
+#ifdef ENABLE_RING_PROTOCOL
+        int status = ring_try_init_tables(k, rows, a, g_tbls);
+
+        if (status == RING_HANDLED)
+                return;
+
+        if (status == RING_INVALID)
+                abort();
+#endif
         int i, j;
 
         for (i = 0; i < rows; i++) {
@@ -81,7 +158,26 @@ gf_gen_rs_matrix(unsigned char *a, int m, int k)
         int i, j;
         unsigned char p, gen = 1;
 
-        memset(a, 0, k * m);
+#ifdef ENABLE_RING_PROTOCOL
+        int config = ring_config_id(k, m - k);
+
+        if (config >= 0) {
+                /*
+                 * 只在 4+2、8+3、10+1 下生成 Ring 描述矩阵。
+                 * 容量仍然是原来的 m * k 字节。
+                 */
+                memset(a, 0, (size_t) k * m);
+
+                for (i = 0; i < m; i++)
+                        a[(size_t) k * i] = ring_row_code(config, 0, i);
+
+                return;
+        }
+#endif
+
+        /* 其他配置：保留原来的 RS 矩阵生成逻辑 */
+        memset(a, 0, (size_t) k * m);
+
         for (i = 0; i < k; i++)
                 a[k * i + i] = 1;
 
@@ -113,9 +209,68 @@ gf_gen_cauchy1_matrix(unsigned char *a, int m, int k)
                         *p++ = gf_inv(i ^ j);
 }
 
+static int
+ring_try_invert(const unsigned char *in, unsigned char *out, int k)
+{
+        int config, recovery, index;
+        unsigned char seen[RING_MAX_SHARDS] = { 0 };
+        int previous = -1;
+        int parity_used = 0;
+
+        if (k != 4 && k != 8 && k != 10)
+                return RING_NOT_HANDLED;
+
+        if (!ring_read_row(in, k, &config, &recovery, &index) || recovery != 0)
+                return RING_NOT_HANDLED;
+
+        int parity = ring_config_parity(config, k);
+
+        for (int i = 0; i < k; i++) {
+                int c, r, id;
+
+                if (!ring_read_row(in + (size_t) i * k, k, &c, &r, &id))
+                        return RING_INVALID;
+
+                if (c != config || r != 0)
+                        return RING_INVALID;
+
+                if (id <= previous || seen[id])
+                        return RING_INVALID;
+
+                seen[id] = 1;
+                previous = id;
+
+                if (id >= k) {
+                        if (id != k + parity_used)
+                                return RING_INVALID;
+
+                        parity_used++;
+                }
+        }
+
+        if (parity_used > parity)
+                return RING_INVALID;
+
+        memset(out, 0, (size_t) k * k);
+
+        for (int i = 0; i < k; i++)
+                out[(size_t) i * k] = ring_row_code(config, 1, i);
+
+        return RING_HANDLED;
+}
+
 int
 gf_invert_matrix(unsigned char *in_mat, unsigned char *out_mat, const int n)
 {
+#ifdef ENABLE_RING_PROTOCOL
+        int status = ring_try_invert(in_mat, out_mat, n);
+
+        if (status == RING_HANDLED)
+                return 0;
+
+        if (status == RING_INVALID)
+                return -1;
+#endif
         int i, j, k;
         unsigned char temp;
 
@@ -322,6 +477,26 @@ ec_encode_data_base(int len, int srcs, int dests, unsigned char *v, unsigned cha
                         dest[l][i] = s;
                 }
         }
+}
+
+void
+ring_encode_data_base(int len, int srcs, int dests, int node_size, unsigned char **src,
+                      unsigned char **dest)
+{
+        /// 待改写
+        // int i, j, l;
+        // unsigned char s;
+        return;
+}
+
+void
+ring_decode_data_base(int len, int m, int k, int node_size, unsigned char **buffs,
+                      unsigned char *src_err_list, int nerrs, unsigned char **temp_buffs)
+{
+        /// 待改写
+        // int i, j, l;
+        // unsigned char s;
+        return;
 }
 
 void

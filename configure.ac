@@ -317,6 +317,28 @@ AC_CONFIG_FILES([\
 	libisal.pc
 ])
 
+AC_ARG_ENABLE(
+    [ring-protocol],
+    [AS_HELP_STRING(
+        [--enable-ring-protocol],
+        [enable the dedicated Ring EC protocol (default: no)]
+    )],
+    [],
+    [enable_ring_protocol=no]
+)
+
+AS_CASE([$enable_ring_protocol],
+    [yes], [
+        AC_DEFINE(
+            [ENABLE_RING_PROTOCOL],
+            [1],
+            [Define to 1 to enable the dedicated Ring EC protocol]
+        )
+    ],
+    [no], [],
+    [AC_MSG_ERROR([--enable-ring-protocol accepts only yes or no])]
+)
+
 AC_OUTPUT
 AC_MSG_RESULT([
         $PACKAGE $VERSION
