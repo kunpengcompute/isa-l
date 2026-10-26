@@ -27,6 +27,7 @@
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **********************************************************************/
 #include <aarch64_multibinary.h>
+#include <stddef.h>
 
 DEFINE_INTERFACE_DISPATCHER(gf_vect_dot_prod)
 {
@@ -62,26 +63,64 @@ DEFINE_INTERFACE_DISPATCHER(gf_vect_mad)
         return PROVIDER_BASIC(gf_vect_mad);
 }
 
-DEFINE_INTERFACE_DISPATCHER(ec_encode_data)
+static void *
+select_native_encoder(void)
 {
 #if defined(__linux__)
         unsigned long auxval = getauxval(AT_HWCAP);
         unsigned long auxval2 = getauxval(AT_HWCAP2);
 
-        if (auxval & HWCAP_SVE){
-                if (auxval2 & HWCAP2_SVE2) {
-                    return PROVIDER_INFO(ec_encode_data_sve2);           
-                }
+        if (auxval & HWCAP_SVE) {
+                if (auxval2 & HWCAP2_SVE2)
+                        return PROVIDER_INFO(ec_encode_data_sve2);
+
                 return PROVIDER_INFO(ec_encode_data_sve);
         }
+
         if (auxval & HWCAP_ASIMD)
                 return PROVIDER_INFO(ec_encode_data_neon);
+
 #elif defined(__APPLE__)
         if (sysctlEnabled(SYSCTL_SVE_KEY))
                 return PROVIDER_INFO(ec_encode_data_sve);
+
         return PROVIDER_INFO(ec_encode_data_neon);
 #endif
+
         return PROVIDER_BASIC(ec_encode_data);
+}
+
+static int
+ring_cpu_supported(void)
+{
+#if defined(__linux__) && defined(__aarch64__)
+        return !!(getauxval(AT_HWCAP) & HWCAP_ASIMD);
+#else
+        return 0;
+#endif
+}
+DEFINE_INTERFACE_DISPATCHER(ec_encode_data)
+{
+#ifdef ENABLE_RING_PROTOCOL
+        if (ring_cpu_supported())
+                return PROVIDER_INFO(ec_encode_data_ring);
+#endif
+        return select_native_encoder();
+}
+
+typedef void (*ec_encode_fn)(int len, int k, int rows, unsigned char *g_tbls, unsigned char **data,
+                             unsigned char **coding);
+
+void
+ec_encode_data_native(int len, int k, int rows, unsigned char *g_tbls, unsigned char **data,
+                      unsigned char **coding)
+{
+        static _Thread_local ec_encode_fn native_fn;
+
+        if (native_fn == NULL)
+                native_fn = (ec_encode_fn) select_native_encoder();
+
+        native_fn(len, k, rows, g_tbls, data, coding);
 }
 
 DEFINE_INTERFACE_DISPATCHER(ec_encode_data_update)

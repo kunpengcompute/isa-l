@@ -30,6 +30,11 @@
 lsrc_aarch64 += \
 		erasure_code/aarch64/ec_aarch64_highlevel_func.c \
 		erasure_code/aarch64/ec_aarch64_dispatcher.c \
+		erasure_code/aarch64/ring_aarch64_highlevel_func.c \
+		erasure_code/aarch64/ring_aarch64_dispatcher.c \
+		erasure_code/aarch64/ring_4_2.c \
+		erasure_code/aarch64/ring_8_3.c \
+		erasure_code/aarch64/ring_10_1.c \
 		erasure_code/aarch64/gf_vect_dot_prod_neon.S \
 		erasure_code/aarch64/gf_2vect_dot_prod_neon.S \
 		erasure_code/aarch64/gf_3vect_dot_prod_neon.S \

@@ -49,6 +49,22 @@ ec_encode_data(int len, int srcs, int dests, unsigned char *v, unsigned char **s
 }
 
 void
+ring_encode_data(int len, int srcs, int dests, int node_size, unsigned char **src,
+               unsigned char **dest)
+{
+        ring_encode_data_base(len, srcs, dests, node_size, src, dest);
+}
+
+void
+ring_decode_data(int len, int m, int k, int node_size, unsigned char **buffs,
+                     unsigned char *src_err_list, int nerrs, unsigned char **temp_buffs)
+{
+        ring_decode_data_base(len, m, k, node_size, buffs, src_err_list, nerrs, temp_buffs);
+}
+
+
+
+void
 ec_encode_data_update(int len, int k, int rows, int vec_i, unsigned char *v, unsigned char *data,
                       unsigned char **dest)
 {

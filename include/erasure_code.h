@@ -71,6 +71,33 @@ extern "C" {
  */
 
 void
+ring_encode_data(int len, int srcs, int dests, int node_size, unsigned char **src,
+                 unsigned char **dest);
+
+void
+ring_encode_data_base(int len, int srcs, int dests, int node_size, unsigned char **src,
+                      unsigned char **dest);
+
+void
+ring_decode_data(int len, int m, int k, int node_size, unsigned char **buffs,
+                 unsigned char *src_err_list, int nerrs, unsigned char **temp_buffs);
+
+void
+ring_decode_data_base(int len, int m, int k, int node_size, unsigned char **buffs,
+                      unsigned char *src_err_list, int nerrs, unsigned char **temp_buffs);
+
+void
+ec_encode_data_native(int len, int k, int rows, unsigned char *g_tbls, unsigned char **data,
+                      unsigned char **coding);
+
+int
+ring_algorithm_encode(int len, int k, int parity, unsigned char **data, unsigned char **coding);
+
+int
+ring_algorithm_decode(int len, int k, int parity, unsigned char **shards, unsigned char *errors,
+                      int nerrs, unsigned char **coding);
+
+void
 ec_init_tables(int k, int rows, unsigned char *a, unsigned char *gftbls);
 
 /**

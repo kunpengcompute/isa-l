@@ -27,7 +27,7 @@
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **********************************************************************/
 #include <aarch64_multibinary.h>
-
+#include <string.h>
 #ifndef CRC32C_DISPATCHER_TYPE
 #define CRC32C_DISPATCHER_TYPE "cache_miss"
 #endif
@@ -75,23 +75,23 @@ DEFINE_INTERFACE_DISPATCHER(crc32_ieee)
 DEFINE_INTERFACE_DISPATCHER(crc32_iscsi)
 {
 #if defined(__linux__)
-        const char* dispatcher_type = CRC32C_DISPATCHER_TYPE;
+        const char *dispatcher_type = CRC32C_DISPATCHER_TYPE;
         unsigned long auxval2 = getauxval(AT_HWCAP2);
 
         if (auxval2 & HWCAP2_SVE2) {
-            if (strcmp(dispatcher_type, "cache_miss") == 0){
-                return PROVIDER_INFO(crc32_iscsi_sve2);  
-            } else {
-                return PROVIDER_INFO(crc32_iscsi_fusion_p8_c10_asm);
-            }               
+                if (strcmp(dispatcher_type, "cache_miss") == 0) {
+                        return PROVIDER_INFO(crc32_iscsi_sve2);
+                } else {
+                        return PROVIDER_INFO(crc32_iscsi_fusion_p8_c10_asm);
+                }
         } else {
-            if (strcmp(dispatcher_type, "cache_miss") == 0){
-                return PROVIDER_INFO(crc32_iscsi_3crc_fold);
-            } else {
-                return PROVIDER_INFO(crc32_iscsi_x6);
-            } 
+                if (strcmp(dispatcher_type, "cache_miss") == 0) {
+                        return PROVIDER_INFO(crc32_iscsi_3crc_fold);
+                } else {
+                        return PROVIDER_INFO(crc32_iscsi_x6);
+                }
         }
-      
+
 #elif defined(__APPLE__)
         if (sysctlEnabled(SYSCTL_CRC32_KEY))
                 return PROVIDER_INFO(crc32_iscsi_3crc_fold);
