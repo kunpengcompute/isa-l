@@ -78,6 +78,43 @@ crc32_iscsi_sve2:
 	prfm    PLDL2STRM, [x7, 2176]
 	prfm    PLDL1STRM, [x8, 784]
 	prfm    PLDL2STRM, [x8, 2176]
+	ld1d	z20.d, p0/z, [x4]
+	ld1d	z21.d, p0/z, [x10]
+	ld1d	z22.d, p0/z, [x9]
+	ld1d	z23.d, p0/z, [x8]
+	ld1d	z24.d, p0/z, [x7]
+	ld1d	z25.d, p0/z, [x6]
+	ld1d	z26.d, p0/z, [x2]
+	ld1d	z27.d, p0/z, [x0]
+
+	pmullt	z16.q, z1.d, z0.d
+	pmullt	z6.q, z2.d, z0.d
+	pmullb	z1.q, z1.d, z0.d
+	pmullb	z2.q, z2.d, z0.d
+	eor3	z1.d, z1.d, z16.d, z20.d
+	eor3	z2.d, z2.d, z6.d, z21.d
+
+	pmullt	z16.q, z4.d, z0.d
+	pmullt	z6.q, z3.d, z0.d
+	pmullb	z4.q, z4.d, z0.d
+	pmullb	z3.q, z3.d, z0.d
+	eor3	z4.d, z4.d, z16.d, z22.d
+	eor3	z3.d, z3.d, z6.d, z23.d
+
+	pmullt	z16.q, z19.d, z0.d
+	pmullt	z6.q, z18.d, z0.d
+	pmullb	z19.q, z19.d, z0.d
+	pmullb	z18.q, z18.d, z0.d
+	eor3	z19.d, z19.d, z16.d, z24.d
+	eor3	z18.d, z18.d, z6.d, z25.d
+
+	pmullt	z16.q, z17.d, z0.d
+	pmullt	z6.q, z7.d, z0.d
+	pmullb	z17.q, z17.d, z0.d
+	pmullb	z7.q, z7.d, z0.d
+	eor3	z17.d, z17.d, z16.d, z26.d
+	eor3	z7.d, z7.d, z6.d, z27.d
+/*
 	ld1d	z5.d, p0/z, [x4]
 	pmullt	z16.q, z1.d, z0.d
 	pmullb	z1.q, z1.d, z0.d
@@ -100,7 +137,6 @@ crc32_iscsi_sve2:
 	eor3	z19.d, z19.d, z16.d, z5.d
 	ld1d	z5.d, p0/z, [x6]
 	pmullt	z6.q, z18.d, z0.d
-	decb	x1, all, mul #8
 	pmullb	z18.q, z18.d, z0.d
 	eor3	z18.d, z18.d, z6.d, z5.d
 	ld1d	z5.d, p0/z, [x2]
@@ -109,8 +145,11 @@ crc32_iscsi_sve2:
 	pmullb	z17.q, z17.d, z0.d
 	pmullb	z7.q, z7.d, z0.d
 	eor3	z17.d, z17.d, z16.d, z5.d
-	add	x4, x4, x3
 	ld1d	z5.d, p0/z, [x0]
+	eor3	z7.d, z7.d, z6.d, z5.d
+*/
+	decb	x1, all, mul #8
+	add	x4, x4, x3
 	add	x10, x10, x3
 	add	x9, x9, x3
 	add	x8, x8, x3
@@ -118,7 +157,6 @@ crc32_iscsi_sve2:
 	add	x6, x6, x3
 	add	x2, x2, x3
 	add	x0, x0, x3
-	eor3	z7.d, z7.d, z6.d, z5.d
 	cmp	w1, w11
 	bge	.L4
 .L3:
